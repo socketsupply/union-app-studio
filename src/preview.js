@@ -56,5 +56,5 @@ const scaleToFit = e => {
 }
 
 if (process.platform === 'ios' || process.platform === 'android') {
-  window.addEventListener('resize', scaleToFit)
+  window.addEventListener('resize', () => requestAnimationFrame(scaleToFit))
 }

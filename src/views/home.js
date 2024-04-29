@@ -173,7 +173,6 @@ class ViewHome extends Tonic {
               id="profile-public-key"
             ></tonic-textarea>
 
-            <iframe src="pages/account.html?dev=${process.env.DEV ? 'true' : 'false'}" border=0></iframe>
           </section>
         </tonic-tab-panel>
       </div>

@@ -90,24 +90,31 @@ class AppProperties extends Tonic {
         <tonic-accordion-section
           name="preview-windows"
           id="preview-windows"
-          label="Preview Windows"
+          label="Preview"
         >
           ${previewWindows}
         </tonic-accordion-section>
         <tonic-accordion-section
           name="build-target"
           id="build-target"
-          label="Build Target"
+          label="Build"
         >
-          <div class="build-controls">
-            <tonic-select id="device" value="${process.platform}" title="Build Target Platform">
-              <option value="ios-simulator" data-value="--platform=ios-simulator">iOS Simulator</option>
-              <option value="android-emulator" data-value="--platform=android-emulator">Android Emulator</option>
-              <option value="linux" data-value="" disabled>Linux</option>
-              <option value="darwin" data-value="">MacOS</option>
-              <option value="win32" data-value="" disabled>Windows</option>
-            </tonic-select>
-          </div>
+          <tonic-checkbox data-section="build-target" id="arch-android" checked="${process.platform === 'android'}" label="Android" title="Android"></tonic-checkbox>
+          <tonic-checkbox data-section="build-target" id="arch-darwin"  checked="${process.platform === 'darwin'}"  label="MacOS" title="MacOS/Darwin"></tonic-checkbox>
+          <tonic-checkbox data-section="build-target" id="arch-ios"     checked="${process.platform === 'ios'}"     label="iOS" title="iOS"></tonic-checkbox>
+          <tonic-checkbox data-section="build-target" id="arch-linux"   checked="${process.platform === 'linux'}"   label="Linux" title="Linux"></tonic-checkbox>
+          <tonic-checkbox data-section="build-target" id="arch-win32"   checked="${process.platform === 'win32'}"   label="Windows" title="Windows"></tonic-checkbox>
+        </tonic-accordion-section>
+
+        <tonic-accordion-section
+          name="deploy"
+          id="deploy"
+          label="Deploy"
+        >
+          <tonic-checkbox data-section="deploy" id="deploy-apple" disabled="true" checked="false" label="Apple Store" title="Apple Store"></tonic-checkbox>
+          <tonic-checkbox data-section="deploy" id="deploy-play" disabled="true" checked="false" label="Google Play Store" title="Google Play Store"></tonic-checkbox>
+          <tonic-checkbox data-section="deploy" id="deploy-ubuntu" disabled="true" checked="false" label="Ubuntu Store" title="Ubuntu Store"></tonic-checkbox>
+          <tonic-checkbox data-section="deploy" id="deploy-ms" disabled="true" checked="false" label="Microsoft Store" title="Microsoft Store"></tonic-checkbox>
         </tonic-accordion-section>
 
         <h3>Project Settings</h3>

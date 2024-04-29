@@ -22,6 +22,7 @@ import { AppTerminal } from './components/terminal.js'
 import { AppProject } from './components/project.js'
 import { AppProperties } from './components/properties.js'
 import { AppSprite } from './components/sprite.js'
+import { DialogAccount } from './components/account.js'
 import { DialogConfirm } from './components/confirm.js'
 import { DialogPublish } from './components/publish.js'
 import { DialogSubscribe } from './components/subscribe.js'
@@ -473,20 +474,44 @@ class AppView extends Tonic {
     }
   }
 
-  //
-  // this app must bundle the platform-specific ssc binary
-  //
-  async exportProject () {
-    const args = [
-      'build',
-      '-r'
-    ]
+  async packageProject () {
+    const coDialogConfirm = document.querySelector('dialog-confirm')
+    const result = await coDialogConfirm.prompt({
+      type: 'question',
+      message: `You're on ${process.platform} but you're targeting other operating systems. Do you want to use the Socket Supply Co. build service to handle this for you?`,
+      buttons: [
+        { label: 'Abandon', value: 'abandon' },
+        { label: 'Continue', value: 'consent' }
+      ]
+    })
 
-    const coDevice = document.querySelector('#device')
-    if (coDevice.option.dataset.value) {
-      args.push(coDevice.option.dataset.value) // --platform=P
+    if (!result.abandon && !result.consent) return
+
+    if (result.consent) {
+      //
+      // Check if the user has an account if not, sign up for one
+      //
+      const { data: dataUser } = await this.db.state.get('user')
+      if (!dataUser.card) {
+        const coDialogAccount = document.querySelector('dialog-account')
+        const { err, data } = await coDialogAccount.prompt()
+
+        if (err) {
+          //
+          // show a new prompt with the error and the option to call this.packageProject() again
+          //
+          return
+        }
+      }
+
+      //
+      // User has an account. go ahead and submit the request for a build
+      //
+      
     }
+  }
 
+  async runSSC (...args) {
     const term = document.querySelector('app-terminal')
     term.info(`ssc ${args.join(' ')}`)
 
@@ -717,7 +742,15 @@ class AppView extends Tonic {
     }
 
     if (event === 'run') {
-      this.exportProject()
+      const args = ['build', '-r']
+
+      // TODO(@heapwolf) check all checked archs in properties panel
+
+      this.runSSC(...args)
+    }
+
+    if (event === 'package') {
+      this.packageProject()
     }
 
     if (event === 'preview-mode') {
@@ -799,8 +832,17 @@ class AppView extends Tonic {
               type="icon"
               size="18px"
               symbol-id="play-icon"
-              title="Build & Run The Project"
+              title="Build & Run"
               data-event="run"
+            >
+            </tonic-button>
+
+            <tonic-button
+              type="icon"
+              size="18px"
+              symbol-id="package-icon"
+              title="Package & Deploy"
+              data-event="package"
             >
             </tonic-button>
 
@@ -808,7 +850,7 @@ class AppView extends Tonic {
               type="icon"
               size="22px"
               symbol-id="run-icon"
-              title="Evalulate The current selection or all code in the editor"
+              title="Evalulate the code in the editor"
               data-event="eval"
             >
             </tonic-button>
@@ -830,6 +872,19 @@ class AppView extends Tonic {
         </tonic-split-right>
       </tonic-split>
 
+      <dialog-account
+        id="dialog-account"
+        width="70%"
+        height="55%"
+      >
+      </dialog-account>
+
+      <dialog-confirm
+        id="dialog-confirm"
+        width="50%"
+      >
+      </dialog-confirm>
+
       <dialog-publish
         id="dialog-publish"
         width="50%"
@@ -846,13 +901,6 @@ class AppView extends Tonic {
       >
       </dialog-subscribe>
 
-      <dialog-confirm
-        id="dialog-confirm"
-        width="50%"
-        height="30%"
-      >
-      </dialog-confirm>
-
       <app-sprite></app-sprite>
     `
   }
@@ -868,6 +916,7 @@ window.onload = () => {
   Tonic.add(AppView)
   Tonic.add(GitStatus)
   Tonic.add(PatchRequests)
+  Tonic.add(DialogAccount)
   Tonic.add(DialogConfirm)
   Tonic.add(DialogPublish)
   Tonic.add(DialogSubscribe)

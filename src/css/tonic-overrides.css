@@ -115,3 +115,12 @@ tonic-button[type="icon"] tonic-icon {
 tonic-input[symbol-id] .tonic--right tonic-icon, tonic-input[src] .tonic--right tonic-icon {
   display: grid;
 }
+
+.tonic--dialog {
+  border-radius: 12px !important;
+}
+
+tonic-toaster-inline .tonic--title {
+  text-transform: uppercase;
+  margin: 0 0 2px;
+}

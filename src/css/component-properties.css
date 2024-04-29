@@ -8,6 +8,11 @@ app-properties {
   bottom: 0;
 }
 
+app-properties h3 {
+  border-bottom: 1px solid;
+  padding-bottom: 6px;
+}
+
 app-properties #project-status {
   border: 1px solid var(--tonic-border);
   padding: 20px 12px;

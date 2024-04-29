@@ -654,15 +654,15 @@ class AppProject extends Tonic {
           children: []
         }
 
-        child.icon = entry.isDirectory() ? 'folder' : 'file'
+        child.icon = entry.isDirectory() ? '' : 'file'
 
-        if (parent.id === 'root' && entry.isDirectory()) {
+        /* if (parent.id === 'root' && entry.isDirectory()) {
           if (!this.props.parent.state.currentProject) {
             this.props.parent.state.currentProject = child
           }
 
           child.icon = 'package'
-        }
+        } */
 
         parent.children.push(child)
 
@@ -711,7 +711,7 @@ class AppProject extends Tonic {
         isDirectory: false,
         nonMovable: true,
         type: 'project',
-        icon: 'package',
+        icon: '',
         children: []
       }
 
@@ -750,9 +750,9 @@ class AppProject extends Tonic {
       const title = (typeof child.title) === 'string' ? child.title : ''
       let icon = child.icon
 
-      if (!icon || icon === 'folder') {
-        icon = child.state === 1 ? 'folder-open' : 'folder'
-      }
+      // if (!icon || icon === 'folder') {
+      //  icon = child.state === 1 ? 'folder-open' : 'folder'
+      // }
 
       const iconColor = node.iconColor || 'var(--tonic-primary)'
 
@@ -770,7 +770,8 @@ class AppProject extends Tonic {
         }
       }
 
-      const hasToggle = hasChildren > 0 || (icon === 'folder')
+      const hasToggle = hasChildren > 0 // || (icon === 'folder')
+
       children.push(this.html`
         <div class="item">
           <div

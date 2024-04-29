@@ -35,6 +35,7 @@ class DialogConfirm extends TonicDialog {
         <tonic-button
           value="${button.value}"
           async="${isAsync}"
+          class="${button.class || ''}"
         >${button.label}</tonic-button>`
     })
   }
@@ -49,10 +50,6 @@ class DialogConfirm extends TonicDialog {
     return this.html`
       <header>${title}</header>
       <main>
-        <tonic-icon
-          symbol-id="${type}"
-          size="24px"
-        ></tonic-icon>
         <div class="message">
           ${message}
         </div>

@@ -2,7 +2,7 @@ app-project {
   user-select: none;
   content-visibility: auto;
   -webkit-user-select: none;
-  padding: 14px 20px;
+  padding: 14px 14px;
   display: block;
   position: absolute;
   background-color: var(--tonic-window);
@@ -131,7 +131,7 @@ app-project .item .handle {
   color: var(--tonic-primary);
   background: var(--tonic-window);
   border-radius: 4px;
-  margin-left: 24px;
+  margin-left: 0px;
   position: relative;
   display: flex;
   padding: 4px 0px;
@@ -153,9 +153,10 @@ app-project .item .handle[data-state="1"] + .node {
 app-project .toggle {
   position: absolute;
   top: 8px;
-  left: -14px;
+  left: 14px;
   width: 14px;
   height: 14px;
+  z-index: 10;
 }
 
 app-project .item .handle[data-state="0"][data-toggle="false"] .toggle {

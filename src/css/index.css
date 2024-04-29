@@ -190,7 +190,7 @@ header.component tonic-button.selected svg use {
 
 header.component#header-properties {
   display: grid;
-  grid-template-columns: 34px 34px 34px 1fr;
+  grid-template-columns: 34px 34px 34px 34px 1fr;
 }
 
 header.component#header-project {

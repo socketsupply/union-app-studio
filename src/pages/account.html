@@ -6,21 +6,40 @@
     <meta
       http-equiv="Content-Security-Policy"
       content="
-        connect-src https://js.stripe.com;
-         script-src https://js.stripe.com socket://co.socketsupply.union/pages/account.js 'unsafe-eval';
+        connect-src socket: https://js.stripe.com https://api.socketsupply.co;
+         script-src socket: https://js.stripe.com socket://co.socketsupply.union/pages/account.js 'unsafe-eval';
             img-src https://js.stripe.com;
           child-src https://js.stripe.com;
          object-src 'none';
       "
     >
     <link rel="stylesheet" href="../css/theme.css">
+    <link rel="stylesheet" href="../css/fonts.css">
+    <link rel="stylesheet" href="../css/tonic-overrides.css">
     <link rel="stylesheet" href="../css/page-account.css">
+
     <script src="https://js.stripe.com/v3/"></script>
     <script src="account.js" type="module"></script>
   </head>
-
   <body>
-    <div id="card-element"></div>
-    <button id="submit">Submit</button>
+    <svg version="1.1" xmlns="http://www.w3.org/2000/svg" class="tonic--svg" viewBox="0 0 100 100">
+      <symbol id="info" viewBox="0 0 100 100">
+        <path fill="currentColor" d="M50.1,6.7C26.3,6.7,6.9,26.2,6.9,50s19.4,43.2,43.2,43.2c23.8,0,43.2-19.5,43.2-43.3C93.3,26.1,74,6.7,50.1,6.7z M53.9,76.4h-7.6V68h7.6V76.4z M53.9,60.5h-7.6V25.6h7.6V60.5z"></path>
+      </symbol>
+
+      <symbol id="danger" viewBox="0 0 100 100">
+        <path fill="currentColor" d="M50.1,6.7C26.3,6.7,6.9,26.2,6.9,50s19.4,43.2,43.2,43.2c23.8,0,43.2-19.5,43.2-43.3C93.3,26.1,74,6.7,50.1,6.7z M53.9,76.4h-7.6V68h7.6V76.4z M53.9,60.5h-7.6V25.6h7.6V60.5z"></path>
+      </symbol>
+
+      <symbol id="warning" viewBox="0 0 100 100">
+        <path fill="currentColor" d="M98.6,86.6l-46-79.7c-1.2-2-4-2-5.2,0l-46,79.7c-1.2,2,0.3,4.5,2.6,4.5h92C98.3,91.1,99.8,88.6,98.6,86.6z M53.9,80.4h-7.6V72h7.6V80.4z M53.9,64.5h-7.6V29.6h7.6V64.5z"></path>
+      </symbol>
+
+      <symbol id="close" viewBox="0 0 100 100">
+        <path d="M80.7,22.6l-3.5-3.5c-0.1-0.1-0.3-0.1-0.4,0L50,45.9L23.2,19.1c-0.1-0.1-0.3-0.1-0.4,0l-3.5,3.5c-0.1,0.1-0.1,0.3,0,0.4
+          l26.8,26.8L19.3,76.6c-0.1,0.1-0.1,0.3,0,0.4l3.5,3.5c0,0,0.1,0.1,0.2,0.1s0.1,0,0.2-0.1L50,53.6l25.9,25.9c0.1,0.1,0.3,0.1,0.4,0
+          l3.5-3.5c0.1-0.1,0.1-0.3,0-0.4L53.9,49.8l26.8-26.8C80.8,22.8,80.8,22.7,80.7,22.6z"/>
+      </symbol>
+    </svg>
   </body>
  </html>
