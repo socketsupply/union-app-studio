@@ -34,3 +34,20 @@ export async function cp (srcDir, destDir) {
     }
   }
 }
+
+export async function ls (dir, { root = dir, ignoreList = [] }) {
+  let fileList = []
+  const entries = await fs.promises.readdir(dir, { withFileTypes: true })
+
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name)
+    if (entry.isDirectory()) {
+      const subDirFiles = await ls(fullPath, { root, ignoreList })
+      fileList = fileList.concat(subDirFiles)
+    } else {
+      fileList.push(path.relative(root, fullPath))
+    }
+  }
+
+  return fileList
+}

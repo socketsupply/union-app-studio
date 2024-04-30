@@ -24,7 +24,7 @@ class DialogAccount extends TonicDialog {
     const app = this.props.app
 
     if (!event.data.success) {
-      console.error('Unsuccessful data returned', event)
+      console.error(event)
       this.resolve(event.data)
       await this.hide()
       return
@@ -44,15 +44,12 @@ class DialogAccount extends TonicDialog {
         dataUser.buildKeys = await res.json()
         await app.db.state.put('user', dataUser)
         await this.hide()
-        return this.resolve({ data: true })
+        this.resolve({ data: true })
       }
     } catch (err) {
-      if (err.name === "AbortError") {
-        this.resolve({ data: event.data })
-        await this.hide()
-        return this.resolve({ err: true })
-      }
       console.log(err)
+      this.resolve({ err: true })
+      await this.hide()
     }
   }
 

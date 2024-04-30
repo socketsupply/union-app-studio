@@ -18,7 +18,11 @@ class AppView extends Tonic {
 
   async show () {
     super.show()
+
     const coForm = this.querySelector('tonic-form')
+    const elButton = Tonic.match(e.target, '#form-submit')
+    elButton.loading(false)
+
     if (coForm) coForm.setValid()
   }
 
@@ -40,8 +44,6 @@ class AppView extends Tonic {
 
     const coForm = this.querySelector('#form-stripe')
     const result = await this.stripe.createToken(this.card, coForm.value)
-
-    el.loading(false)
 
     const data = {
       ...result,

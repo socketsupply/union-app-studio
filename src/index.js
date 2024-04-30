@@ -13,7 +13,7 @@ import components from '@socketsupply/components'
 import Indexed from '@socketsupply/indexed'
 
 import { Patch } from './git-data.js'
-import { rm } from './lib/fs.js'
+import { rm, ls } from './lib/fs.js'
 
 import { RelativeDate } from './components/relative-date.js'
 import { GitStatus } from './components/git-status.js'
@@ -492,6 +492,9 @@ class AppView extends Tonic {
   async buildProject () {
     const { data: dataUser } = await this.db.state.get('user')
 
+    //
+    // Gather all the archs for the build and determine if it can be done locally.
+    //
     const architectures = [...document.querySelectorAll('#build-target tonic-checkbox')]
       .filter(co => co.value)
       .map(co => co.dataset.arch)
@@ -506,6 +509,9 @@ class AppView extends Tonic {
     if (process.platform === 'win32' && architectures.some(s => invalidWin32.has(s))) needsBuildService = true
     if (process.platform === 'linux' && architectures.some(s => invalidLinux.has(s))) needsBuildService = true
 
+    //
+    // If the user needs a build service, ask them first.
+    //
     if (needsBuildService) {
       const platform = process.platform === 'darwin' ? 'MacOS' : process.platform
       const coDialogConfirm = document.querySelector('dialog-confirm')
@@ -514,7 +520,7 @@ class AppView extends Tonic {
         message: `
           You're using ${platform} but you're trying to build for other operating systems or compute architectures.
           <br><br>
-          Do you want to use our <b>Build Service</b> to handle this for you?
+          Do you want to upload your files and have our <b>Build Service</b> generate the builds for you?
         `,
         buttons: [
           { label: 'cancel', value: 'abandon' },
@@ -526,7 +532,7 @@ class AppView extends Tonic {
 
       if (result.consent) {
         //
-        // Check if the user has an account if not, sign up for one
+        // Check if the user has an account if not, ask them if they want one
         //
         if (!dataUser.buildKeys) {
           const coDialogAccount = document.querySelector('dialog-account')
@@ -546,41 +552,33 @@ class AppView extends Tonic {
           }
         }
 
-        //
-        // Apparently tar has been available on windows since v10. Tar it,
-        // base64 encode it, and add it to the manifest as a payload.
-        //
         const term = document.querySelector('app-terminal')
-        const tar = spawn('tar', ['-cvf', '-', this.state.currentProject.id])
-        const buffer = Buffer.alloc(0)
-
-        tar.stdout.on('data', data => {
-          buffer = Buffer.concat([buffer, data])
-        })
-
-        tar.stderr.on('data', data => {
-          term.error(data.toString())
-        })
-
-        tar.on('close', (code) => {
-          term.info(`tar process exited with code ${code}`)
-        })
+        const files = await ls(this.state.currentProject.id, { ignoreList: [/^build$/, /\..*/] })
 
         //
         // This tells us what architectures you want to build for, what time
         // you're trying to send it, your public key and the payload you want built.
         //
+        const { data: dataUserUpdated } = await this.db.state.get('user')
+
         const manifest = {
           architectures,
           ctime: Date.now(),
-          pk: dataUser.buildKeys.pk,
-          data: buffer.toString('base64')
+          pk: dataUserUpdated.buildKeys.pk,
+          files
         }
 
         const bytes = Buffer.from(JSON.stringify(manifest))
-        manifest.sig = Encryption.sign(bytes, dataUser.buildKeys.sk)
+        const key = Buffer.from(dataUserUpdated.buildKeys.sk, 'base64')
+
+        manifest.sig = Buffer.from(Encryption.sign(bytes, key)).toString('base64')
 
         try {
+          //
+          // Asking for a build will give the user an array of auth objects
+          // they can use to upload files to s3. after that they can kick off
+          // the build.
+          //
           const res = await fetch('https://api.socketsupply.co/build', {
             method: 'POST',
             mode: 'cors',
@@ -590,9 +588,48 @@ class AppView extends Tonic {
 
           if (res.ok) {
             const app = this.props.parent
-            const { data: dataUser } = await app.db.state.get('user')
-            dataUser.buildKeys = await res.json()
-            await app.db.state.put('user', dataUser)
+            const job = await res.json()
+
+            //
+            // The user might close their laptop in the middle of an upload
+            // so let's store this data and we can resume it when they open
+            // the lid and come online again.
+            //
+            await app.db.jobs.put(job.id, job)
+
+            //
+            // let the upload go into the background.
+            //
+            const uploader = new Worker('uploader.js')
+            uploader.addEventListener('message', async event => {
+              const { status, message } = event.data
+
+              if (status === 'success') {
+                const result = await coDialogConfirm.prompt({
+                  type: 'question',
+                  message: `Your files have been uploaded. Do you want to start the build?`,
+                  buttons: [
+                    { label: 'cancel', value: 'abandon' },
+                    { label: 'ok', value: 'consent' }
+                  ]
+                })
+
+                if (!result.abandon && !result.consent) return
+
+                if (result.consent) {
+                  // send a request to kick off the actual build job
+                }
+              } else if (status === 'error') {
+                await coDialogConfirm.prompt({
+                  type: 'question',
+                  message: `There was a problem: ${message}`,
+                  buttons: [
+                    { label: 'ok', value: 'close' }
+                  ]
+                })
+              }
+            })
+
             await this.hide()
             return this.resolve({ data: true })
           }
@@ -604,8 +641,9 @@ class AppView extends Tonic {
     }
 
     //
-    // run the build locally. also, it's going to be ready quite
-    // quickly, so just reveal it when it's ready.
+    // just run the build locally. also, it's going to be
+    // ready quite quickly, so just reveal it when it's ready.
+    //
     await this.spawnSSC('build')
 
     const w = await application.getCurrentWindow()
