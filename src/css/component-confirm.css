@@ -13,7 +13,7 @@ dialog-confirm header {
   height: 46px;
   text-align: center;
   padding: 14px;
-  font-size: 12px;
+  font-size: 14px;
   color: var(--tonic-info);
 }
 
@@ -40,4 +40,10 @@ dialog-confirm main {
   align-content: center;
   padding: 4% 6%;
   text-align: left;
+}
+
+dialog-confirm main .message {
+  font-family: var(--tonic-body);
+  letter-spacing: 0.2px;
+  font-size: 16px;
 }

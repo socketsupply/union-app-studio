@@ -99,11 +99,11 @@ class AppProperties extends Tonic {
           id="build-target"
           label="Build"
         >
-          <tonic-checkbox data-section="build-target" id="arch-android" checked="${process.platform === 'android'}" label="Android" title="Android"></tonic-checkbox>
-          <tonic-checkbox data-section="build-target" id="arch-darwin"  checked="${process.platform === 'darwin'}"  label="MacOS" title="MacOS/Darwin"></tonic-checkbox>
-          <tonic-checkbox data-section="build-target" id="arch-ios"     checked="${process.platform === 'ios'}"     label="iOS" title="iOS"></tonic-checkbox>
-          <tonic-checkbox data-section="build-target" id="arch-linux"   checked="${process.platform === 'linux'}"   label="Linux" title="Linux"></tonic-checkbox>
-          <tonic-checkbox data-section="build-target" id="arch-win32"   checked="${process.platform === 'win32'}"   label="Windows" title="Windows"></tonic-checkbox>
+          <tonic-checkbox data-section="build-target" id="arch-android" data-arch="android" checked="${String(process.platform === 'android')}" label="Android" title="Android"></tonic-checkbox>
+          <tonic-checkbox data-section="build-target" id="arch-darwin"  data-arch="darwin"  checked="${String(process.platform === 'darwin')}"  label="MacOS" title="MacOS/Darwin"></tonic-checkbox>
+          <tonic-checkbox data-section="build-target" id="arch-ios"     data-arch="ios"     checked="${String(process.platform === 'ios')}"     label="iOS" title="iOS"></tonic-checkbox>
+          <tonic-checkbox data-section="build-target" id="arch-linux"   data-arch="linux"   checked="${String(process.platform === 'linux')}"   label="Linux" title="Linux"></tonic-checkbox>
+          <tonic-checkbox data-section="build-target" id="arch-win32"   data-arch="win32"   checked="${String(process.platform === 'win32')}"   label="Windows" title="Windows"></tonic-checkbox>
         </tonic-accordion-section>
 
         <tonic-accordion-section

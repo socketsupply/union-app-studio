@@ -30,8 +30,6 @@ class DialogAccount extends TonicDialog {
       return
     }
 
-    console.log('GOT RESPONSE FROM STRIPE PAGE', event.data)
-
     try {
       const res = await fetch('https://api.socketsupply.co/signup', {
         method: 'POST',
@@ -40,19 +38,19 @@ class DialogAccount extends TonicDialog {
         body: JSON.stringify(event.data)
       })
 
-      console.log('SIGNUP RESPONSE', res)
-
       if (res.ok) {
-        const { data: dataUser } = await this.db.state.get('user')
+        const app = this.props.parent
+        const { data: dataUser } = await app.db.state.get('user')
         dataUser.buildKeys = await res.json()
-        console.log('dataUser', dataUser)
-        await this.db.state.put('user', dataUser)
+        await app.db.state.put('user', dataUser)
         await this.hide()
+        return this.resolve({ data: true })
       }
     } catch (err) {
       if (err.name === "AbortError") {
         this.resolve({ data: event.data })
         await this.hide()
+        return this.resolve({ err: true })
       }
       console.log(err)
     }

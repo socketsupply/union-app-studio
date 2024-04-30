@@ -1,3 +1,4 @@
+import Tonic from '@socketsupply/tonic'
 import { TonicDialog } from '@socketsupply/components/dialog'
 
 class DialogConfirm extends TonicDialog {
@@ -51,7 +52,7 @@ class DialogConfirm extends TonicDialog {
       <header>${title}</header>
       <main>
         <div class="message">
-          ${message}
+          ${Tonic.unsafeRawString(message)}
         </div>
         ${this.renderCheckbox()}
       </main>

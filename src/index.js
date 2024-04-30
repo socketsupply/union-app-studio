@@ -13,7 +13,7 @@ import components from '@socketsupply/components'
 import Indexed from '@socketsupply/indexed'
 
 import { Patch } from './git-data.js'
-import { cp, rm } from './lib/fs.js'
+import { rm } from './lib/fs.js'
 
 import { RelativeDate } from './components/relative-date.js'
 import { GitStatus } from './components/git-status.js'
@@ -315,6 +315,19 @@ class AppView extends Tonic {
     }
   }
 
+  async getBin () {
+    const runtime = await import(`npm:@socketsupply/socket-${os.platform()}-${os.arch()}`)
+    const ssc = path.join(process.cwd(), runtime.bin.ssc.replace(globalThis.location.origin, ''))
+
+    try {
+      await fs.promises.access('/Applications/Xcode.app/Contents/Developer/usr/bin/git', fs.constants.X_OK)
+    } catch (err) {
+      console.error(err)
+    }
+
+    return ssc
+  }
+
   async createProject (opts = {}) {
     const name = opts.name || 'project-' + Math.random().toString(16).slice(2, 8)
     const bundleId = 'com.' + name
@@ -340,16 +353,8 @@ class AppView extends Tonic {
     await this.db.projects.put(bundleId, project)
     await fs.promises.mkdir(project.path, { recursive: true })
 
-    const runtime = await import(`npm:@socketsupply/socket-${os.platform()}-${os.arch()}`)
-    const ssc = path.join(process.cwd(), runtime.bin.ssc.replace(globalThis.location.origin, ''))
-    console.log({ ssc })
-      try {
-      await fs.promises.access('/Applications/Xcode.app/Contents/Developer/usr/bin/git', fs.constants.X_OK)
-    } catch (err) {
-      console.error(err)
-    }
     try {
-      await exec(`${ssc} init`, { cwd: project.path })
+      await exec(`${await this.getBin()} init`, { cwd: project.path })
 
       console.log(await exec('/Applications/Xcode.app/Contents/Developer/usr/bin/git init', { cwd: project.path }))
     } catch (err) {
@@ -484,46 +489,132 @@ class AppView extends Tonic {
     }
   }
 
-  async packageProject () {
-    const coDialogConfirm = document.querySelector('dialog-confirm')
-    const result = await coDialogConfirm.prompt({
-      type: 'question',
-      message: `You're on ${process.platform} but you're targeting other operating systems. Do you want to use the Socket Supply Co. build service to handle this for you?`,
-      buttons: [
-        { label: 'Abandon', value: 'abandon' },
-        { label: 'Continue', value: 'consent' }
-      ]
-    })
+  async buildProject () {
+    const { data: dataUser } = await this.db.state.get('user')
 
-    if (!result.abandon && !result.consent) return
+    const architectures = [...document.querySelectorAll('#build-target tonic-checkbox')]
+      .filter(co => co.value)
+      .map(co => co.dataset.arch)
 
-    if (result.consent) {
-      //
-      // Check if the user has an account if not, sign up for one
-      //
-      const { data: dataUser } = await this.db.state.get('user')
-      if (!dataUser.card) {
-        const coDialogAccount = document.querySelector('dialog-account')
-        const { err, data } = await coDialogAccount.prompt()
+    const invalidMacOS = new Set(['linux', 'win32'])
+    const invalidWin32 = new Set(['ios', 'darwin', 'linux'])
+    const invalidLinux = new Set(['ios', 'darwin', 'win32'])
 
-        if (err) {
-          //
-          // show a new prompt with the error and the option to call this.packageProject() again
-          //
-          return
+    let needsBuildService = false
+
+    if (process.platform === 'darwin' && architectures.some(s => invalidMacOS.has(s))) needsBuildService = true
+    if (process.platform === 'win32' && architectures.some(s => invalidWin32.has(s))) needsBuildService = true
+    if (process.platform === 'linux' && architectures.some(s => invalidLinux.has(s))) needsBuildService = true
+
+    if (needsBuildService) {
+      const platform = process.platform === 'darwin' ? 'MacOS' : process.platform
+      const coDialogConfirm = document.querySelector('dialog-confirm')
+      const result = await coDialogConfirm.prompt({
+        type: 'question',
+        message: `
+          You're using ${platform} but you're trying to build for other operating systems or compute architectures.
+          <br><br>
+          Do you want to use our <b>Build Service</b> to handle this for you?
+        `,
+        buttons: [
+          { label: 'cancel', value: 'abandon' },
+          { label: 'ok', value: 'consent' }
+        ]
+      })
+
+      if (!result.abandon && !result.consent) return
+
+      if (result.consent) {
+        //
+        // Check if the user has an account if not, sign up for one
+        //
+        if (!dataUser.buildKeys) {
+          const coDialogAccount = document.querySelector('dialog-account')
+          const { err } = await coDialogAccount.prompt()
+
+          if (err) {
+            await coDialogConfirm.prompt({
+              type: 'question',
+              message: err.message,
+              buttons: [
+                { label: 'ok', value: 'cancel' }
+              ]
+            })
+
+            this.buildProject()
+            return
+          }
+        }
+
+        //
+        // Apparently tar has been available on windows since v10. Tar it,
+        // base64 encode it, and add it to the manifest as a payload.
+        //
+        const tar = spawn('tar', ['-cvf', '-', this.state.currentProject.id])
+        const buffer = Buffer.alloc(0)
+
+        tar.stdout.on('data', data => {
+          buffer = Buffer.concat([buffer, data])
+        })
+
+        tar.stderr.on('data', data => {
+          term.error(data.toString())
+        })
+
+        tar.on('close', (code) => {
+          term.info(`tar process exited with code ${code}`)
+        })
+
+        //
+        // This tells us what architectures you want to build for, what time
+        // you're trying to send it, your public key and the payload you want built.
+        //
+        const manifest = {
+          architectures,
+          ctime: Date.now(),
+          pk: dataUser.buildKeys.pk,
+          data: buffer.toString('base64')
+        }
+
+        const bytes = Buffer.from(JSON.stringify(manifest))
+        manifest.sig = Encryption.sign(bytes, dataUser.buildKeys.sk)
+
+        try {
+          const res = await fetch('https://api.socketsupply.co/build', {
+            method: 'POST',
+            mode: 'cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(manifest)
+          })
+
+          if (res.ok) {
+            const app = this.props.parent
+            const { data: dataUser } = await app.db.state.get('user')
+            dataUser.buildKeys = await res.json()
+            await app.db.state.put('user', dataUser)
+            await this.hide()
+            return this.resolve({ data: true })
+          }
+        } catch (err) {
+          console.log(err)
         }
       }
-
-      //
-      // User has an account. go ahead and submit the request for a build
-      //
-      
+      return
     }
+
+    //
+    // run the build locally. also, it's going to be ready quite
+    // quickly, so just reveal it when it's ready.
+    await this.spawnSSC('build')
+
+    const w = await application.getCurrentWindow()
+    await w.revealFile(this.state.currentProject.id)
   }
 
-  async runSSC (...args) {
+  async spawnSSC (...args) {
+    const { promise, resolve } = Promise.withResolvers()
     const term = document.querySelector('app-terminal')
-    term.info(`ssc ${args.join(' ')}`)
+    term.info(`${await this.getBin()} ${args.join(' ')}`)
 
     if (this.childprocess && !this.childprocess.killed && this.childprocess.exitCode !== null) {
       this.childprocess.kill('SIGKILL')
@@ -541,7 +632,7 @@ class AppView extends Tonic {
     term.info('Running new instance of app')
     const cwd = this.state.currentProject.id
     const env = { SSC_PARENT_LOG_SOCKET: process.env.SSC_LOG_SOCKET }
-    const c = this.childprocess = await spawn('ssc', args, { cwd, env })
+    const c = this.childprocess = await spawn(await this.getBin(), args, { cwd, env })
 
     c.stdout.on('data', data => {
       term.writeln(Buffer.from(data).toString().trim())
@@ -554,12 +645,16 @@ class AppView extends Tonic {
     c.once('exit', (code) => {
       term.writeln(`OK! ${code}`)
       this.childprocess = null
+      resolve()
     })
 
     c.once('error', (code) => {
       term.writeln(`NOT OK! ${code}`)
       this.childprocess = null
+      resolve()
     })
+
+    return promise
   }
 
   async initMenu () {
@@ -756,11 +851,11 @@ class AppView extends Tonic {
 
       // TODO(@heapwolf) check all checked archs in properties panel
 
-      this.runSSC(...args)
+      await this.spawnSSC(...args)
     }
 
     if (event === 'package') {
-      this.packageProject()
+      this.buildProject()
     }
 
     if (event === 'preview-mode') {
@@ -886,6 +981,7 @@ class AppView extends Tonic {
         id="dialog-account"
         width="70%"
         height="55%"
+        parent=${this}
       >
       </dialog-account>
 

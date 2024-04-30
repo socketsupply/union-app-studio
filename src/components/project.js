@@ -641,7 +641,7 @@ class AppProject extends Tonic {
         const fullPath = path.join(dirPath, entry.name)
         const oldChild = this.getNodeByProperty('id', fullPath, oldState)
 
-        if (entry.name === '.git') continue
+        if (entry.name[0] === '.') continue
 
         const child = {
           id: fullPath,
