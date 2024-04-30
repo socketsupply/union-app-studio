@@ -97,7 +97,6 @@ export default async function (req, env, ctx) {
   let html = data
 
   if (url.pathname.endsWith('index.html')) {
-    console.log('SERVING')
     html = html.replace(/<html(?:[^\n\r]*)>/, `<html style="zoom: ${zoom}; will-change: zoom;">`)
     html = html.replace('</head>', `<style>${css}</style></head>`)
   }
