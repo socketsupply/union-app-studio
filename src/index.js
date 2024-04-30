@@ -550,6 +550,7 @@ class AppView extends Tonic {
         // Apparently tar has been available on windows since v10. Tar it,
         // base64 encode it, and add it to the manifest as a payload.
         //
+        const term = document.querySelector('app-terminal')
         const tar = spawn('tar', ['-cvf', '-', this.state.currentProject.id])
         const buffer = Buffer.alloc(0)
 
