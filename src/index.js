@@ -45,7 +45,7 @@ class AppView extends Tonic {
     this.setAttribute('platform', process.platform)
 
     this.llm = new LLM({
-      path: '/Users/paolofragomeni/projects/gpt/models/mistral-7b-openorca.Q4_0.gguf',
+      path: 'models/mistral-7b-openorca.Q4_0.gguf',
       prompt: 'you are a helpful coding assistant.'
     })
 
