@@ -19,6 +19,8 @@ class DialogAccount extends TonicDialog {
 
   async handleResponse (event) {
     const iframe = this.querySelector('iframe')
+
+    // if this isnt a message from the iframe, ignore it
     if (event.source !== iframe.contentWindow) return
 
     const app = this.props.app

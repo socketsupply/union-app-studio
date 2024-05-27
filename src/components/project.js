@@ -481,11 +481,11 @@ class AppProject extends Tonic {
       const projectNode = this.getProjectNode(node)
       const coImagePreview = document.querySelector('view-image-preview')
       const coProjectSummary = document.querySelector('view-project-summary')
-      const coHome = document.querySelector('view-home')
+      // const coHome = document.querySelector('view-home')
 
       coImagePreview.hide()
       coProjectSummary.hide()
-      coHome.hide()
+      // coHome.hide()
 
       // Check if the project has changed, refresh the props component
       if (this.state.currentProjectId !== projectNode.id) {
@@ -507,7 +507,7 @@ class AppProject extends Tonic {
       if (node.isDirectory) return
 
       if (projectNode.id === 'home') {
-        coHome.show()
+        // coHome.show()
         return
       }
 
@@ -616,7 +616,7 @@ class AppProject extends Tonic {
       children: []
     }
 
-    tree.children.push({
+    /* tree.children.push({
       id: 'home',
       parent: tree,
       selected: oldChild?.selected ?? 0,
@@ -626,7 +626,7 @@ class AppProject extends Tonic {
       label: 'Home',
       nonMovable: true,
       children: []
-    })
+    }) */
 
     const readDir = async (dirPath, parent) => {
       let entries = []

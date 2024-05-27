@@ -2,6 +2,7 @@ import application from 'socket:application'
 import fs from 'socket:fs'
 import path from 'socket:path'
 
+import { marked } from '../vendor.js'
 import Tonic from '@socketsupply/tonic'
 
 class ViewHome extends Tonic {
@@ -11,6 +12,13 @@ class ViewHome extends Tonic {
 
   hide () {
     this.classList.remove('show')
+  }
+
+  async connected () {
+    const str = await fs.promises.readFile('node_modules/@socketsupply/socket/README.md')
+    if (str?.length) {
+      document.getElementById('docs-content').innerHTML = marked.parse(str.toString())
+    }
   }
 
   async click (e) {
@@ -93,11 +101,7 @@ class ViewHome extends Tonic {
 
     return this.html`
       <header class="component">
-        <tonic-tabs selected="tab-news" id="home-tabs">
-          <tonic-tab
-            id="tab-news"
-            for="tab-panel-news"
-          >What's New</tonic-tab>
+        <tonic-tabs selected="tab-panel-docs" id="home-tabs">
           <tonic-tab
             id="tab-docs"
             for="tab-panel-docs"
@@ -110,12 +114,6 @@ class ViewHome extends Tonic {
       </header>
 
       <div class="content">
-        <tonic-tab-panel id="tab-panel-news">
-          <div class="empty-state">
-            <span>No new items...</span>
-          </div>
-        </tonic-tab-panel>
-
         <tonic-tab-panel id="tab-panel-docs">
           <section>
             <tonic-input
@@ -125,6 +123,7 @@ class ViewHome extends Tonic {
               symbol-id="search-icon"
               position="right"
             ></tonic-input>
+            <div id="docs-content"></div>
           </section>
         </tonic-tab-panel>
 

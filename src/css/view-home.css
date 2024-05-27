@@ -40,23 +40,6 @@ view-home .content {
   overflow: scroll;
 }
 
-view-home h1 {
-  font-family: var(--tonic-body);
-  text-transform: uppercase;
-  font-size: 38px;
-  margin-top: 0;
-  font-weight: 100;
-  white-space: nowrap;
-}
-
-view-home h1 b {
-  font-family: var(--tonic-header);
-  text-transform: uppercase;
-  font-size: 38px;
-  font-weight: 900;
-}
-
-
 view-home h2 {
   text-transform: uppercase;
   border-bottom: 1px solid;
@@ -64,7 +47,6 @@ view-home h2 {
   margin-bottom: 4px;
   padding: 2px 0;
   font-family: var(--tonic-body);
-  font-weight: 100;
 }
 
 view-home .panel-label {
@@ -116,4 +98,30 @@ view-home tonic-profile-image {
   margin-right: auto;
   border: 1px solid var(--tonic-border);
   border-radius: 4px;
+}
+
+/* Docs */
+
+#docs-content {
+  a {
+    color: var(--tonic-primary);
+    text-decoration: none;
+    border: none;
+  }
+
+  h1, h2, h3 {
+    text-transform: uppercase;
+  }
+
+  h1 {
+    font-size: 32px;
+    font-weight: 400;
+  }
+
+  pre {
+    padding: 8px;
+    border: 1px solid var(--tonic-border);
+    background-color: var(--tonic-dark);
+    border-radius: 6px;
+  }
 }

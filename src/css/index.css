@@ -38,8 +38,8 @@ tonic-accordion h3 {
   margin: 16px 14px 6px;
   color: var(--tonic-primary);
   font-family: var(--tonic-body);
-  font-weight: 100;
   font-size: 14px;
+  font-weight: 400;
 }
 
 #inputs {
@@ -205,4 +205,63 @@ header.component#header-project {
 
 #split-main tonic-split-right {
   overflow: auto;
+}
+
+/* Tables */
+
+table {
+  width: 100%;
+  text-align: left;
+  border-collapse: collapse;
+  border: 1px solid var(--tonic-border);
+  margin: 20px 0;
+}
+
+table code {
+  padding: 2px 4px;
+  border-radius: 4px;
+  background-color: var(--tonic-background) !important;
+  color: var(--tonic-primary) !important;
+  border: 1px solid var(--tonic-border);
+}
+
+th {
+  font: 13px/16px var(--tonic-subheader);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 12px 10px;
+  background-color: var(--tonic-background);
+  border-bottom: 1px solid var(--tonic-border);
+  border-right: 1px solid var(--tonic-border);
+  color: var(--tonic-info);
+}
+
+td {
+  line-height: 22px;
+  padding: 10px;
+  border-bottom: 1px solid var(--tonic-border);
+}
+
+td:not(:first-of-type) {
+  border-left: 1px solid var(--tonic-border);
+}
+
+tr:last-of-type td {
+  border-bottom: 0;
+}
+
+td:last-of-type {
+  border-right: 0;
+}
+
+@media (max-width: 699px) {
+  body table {
+    display: block;
+    max-width: -moz-fit-content;
+    max-width: fit-content;
+    margin: 20px 0;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
 }

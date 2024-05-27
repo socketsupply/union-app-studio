@@ -16,7 +16,6 @@ view-project-summary h2 {
   font-size: 20px;
   text-transform: uppercase;
   color: var(--tonic-info);
-  font-weight: 100;
 }
 
 view-project-summary header span {

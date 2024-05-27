@@ -39,7 +39,6 @@ view-image-preview .bottom h2 {
   border-bottom: 1px solid var(--tonic-info);
   font-size: 14px;
   text-transform: uppercase;
-  font-weight: 100;
   color: var(--tonic-info);
 }
 

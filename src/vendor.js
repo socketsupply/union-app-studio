@@ -3,6 +3,7 @@
 //
 import * as monaco from 'monaco-editor'
 import { Terminal } from 'xterm'
+import { marked } from 'marked'
 import { FitAddon as Resizer } from 'xterm-addon-fit'
 import { SearchAddon as Search } from 'xterm-addon-search'
 
@@ -12,4 +13,4 @@ import { SearchAddon as Search } from 'xterm-addon-search'
 import Tonic from '@socketsupply/tonic'
 import components from '@socketsupply/components'
 
-export { monaco, Terminal, Resizer, Search, Tonic, components }
+export { monaco, Terminal, Resizer, Search, Tonic, components, marked }

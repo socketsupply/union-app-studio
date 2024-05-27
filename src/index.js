@@ -1,6 +1,7 @@
 import fs from 'socket:fs'
 import path from 'socket:path'
 import process from 'socket:process'
+import { LLM } from 'socket:ai'
 import application from 'socket:application'
 import { network, Encryption } from 'socket:network'
 import vm from 'socket:vm'
@@ -28,7 +29,7 @@ import { DialogConfirm } from './components/confirm.js'
 import { DialogPublish } from './components/publish.js'
 import { DialogSubscribe } from './components/subscribe.js'
 
-import { ViewHome } from './views/home.js'
+// import { ViewHome } from './views/home.js'
 import { ViewImagePreview } from './views/image-preview.js'
 import { ViewProjectSummary } from './views/project-summary.js'
 
@@ -42,6 +43,21 @@ class AppView extends Tonic {
     this.previewWindows = {}
 
     this.setAttribute('platform', process.platform)
+
+    this.llm = new LLM({
+      path: '/Users/paolofragomeni/projects/gpt/models/mistral-7b-openorca.Q4_0.gguf',
+      prompt: 'you are a helpful coding assistant.'
+    })
+
+    let term
+
+    this.llm.on('data', data => {
+      if (data.includes('<|im_end|>')) return this.llm.stop()
+      if (data.includes('<dummy32000>')) return this.llm.stop()
+
+      if (!term) term = document.querySelector('#app-terminal')
+      if (data) term._term.write(data)
+    })
 
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
       this.reloadPreviewWindows()
@@ -552,6 +568,9 @@ class AppView extends Tonic {
           }
         }
 
+        //
+        // To get there the user must have an account, so we are ready to start uploading the files to s3.
+        //
         const term = document.querySelector('app-terminal')
         const files = await ls(this.state.currentProject.id, { ignoreList: [/^build$/, /\..*/] })
 
@@ -587,7 +606,6 @@ class AppView extends Tonic {
           })
 
           if (res.ok) {
-            const app = this.props.parent
             const job = await res.json()
 
             //
@@ -595,7 +613,7 @@ class AppView extends Tonic {
             // so let's store this data and we can resume it when they open
             // the lid and come online again.
             //
-            await app.db.jobs.put(job.id, job)
+            await this.db.jobs.put(job.id, job)
 
             //
             // let the upload go into the background.
@@ -617,12 +635,28 @@ class AppView extends Tonic {
                 if (!result.abandon && !result.consent) return
 
                 if (result.consent) {
-                  // send a request to kick off the actual build job
+                  try {
+                    const res = await fetch(`https://api.socketsupply.co/build?id=${job.id}`)
+                    const status = res && await res.json()
+                  } catch (err) {
+                    await coDialogConfirm.prompt({
+                      type: 'question',
+                      message: `There was a problem starting the build job: ${message}`,
+                      buttons: [
+                        { label: 'ok', value: 'close' }
+                      ]
+                    })
+                    return
+                  }
+                  
+                  job.started = true
+                  await this.db.jobs.put(job.id, job)
+                  term
                 }
               } else if (status === 'error') {
                 await coDialogConfirm.prompt({
                   type: 'question',
-                  message: `There was a problem: ${message}`,
+                  message: `There was a problem uploading the files: ${message}`,
                   buttons: [
                     { label: 'ok', value: 'close' }
                   ]
@@ -860,7 +894,10 @@ class AppView extends Tonic {
       }
     }
 
-    try {
+    const value = editor.selection || editor.value
+    this.llm.chat(value)
+
+    /* try {
       // TODO(@jwerle,@heapwolf): should this be in a new context every time?
       const editorVM = await vm.runInContext(`
         export * from '${globalThis.origin}/vm.js'
@@ -872,7 +909,7 @@ class AppView extends Tonic {
       await editorVM.evaluate(value)
     } catch (err) {
       term.writeln(format(err))
-    }
+    } */
   }
 
   async click (e) {
@@ -920,7 +957,7 @@ class AppView extends Tonic {
     await navigator.serviceWorker.ready
 
     await this.initData()
-    await this.initNetwork()
+    // await this.initNetwork()
     await this.initApplication()
 
     const previewMode = this.state.settings?.previewMode === true ? 'selected' : ''
@@ -957,7 +994,7 @@ class AppView extends Tonic {
                 <tonic-split-top height="80%">
                   <app-editor id="editor" parent=${this}></app-editor>
 
-                  <view-home id="view-home" parent=${this}></view-home>
+                  <!-- view-home id="view-home" parent=${this}></view-home -->
                   <view-project-summary id="project-summary" parent=${this}></view-project-summary>
                   <view-image-preview id="image-preview" parent=${this}></view-image-preview>
                 </tonic-split-top>
@@ -1065,7 +1102,7 @@ window.onload = () => {
   Tonic.add(DialogConfirm)
   Tonic.add(DialogPublish)
   Tonic.add(DialogSubscribe)
-  Tonic.add(ViewHome)
+  // Tonic.add(ViewHome)
   Tonic.add(ViewImagePreview)
   Tonic.add(ViewProjectSummary)
 }

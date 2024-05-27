@@ -617,7 +617,7 @@ class AppEditor extends Tonic {
         }
       }
 
-      coTabs.state.editingTabId = coTabs.tab.id
+      coTabs.state.editingTabId = coTabs.tab?.id
     })
 
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {

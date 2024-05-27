@@ -84,7 +84,6 @@ app-project .item .node-data .label {
   line-height: 22px;
   letter-spacing: 0.8px;
   font-family: var(--tonic-body);
-  font-weight: 100;
 }
 
 app-project[dragging] {

@@ -71,7 +71,7 @@ tonic-accordion-section .tonic--accordion-header button .tonic--label {
   font-family: var(--tonic-body);
   padding: 14px;
   color: var(--tonic-info);
-  font-weight: 100;
+  font-weight: 400;
 }
 
 tonic-accordion-section .tonic--accordion-header button[aria-expanded="true"] .tonic--label {
